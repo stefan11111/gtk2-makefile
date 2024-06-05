@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 typedef struct {
     int x11:2;
@@ -104,8 +107,32 @@ void parse_arguments (int argc, char **argv, flags_t *flags)
     }
 }
 
+void run_build(flags_t *flags)
+{
+    exit(0);
+}
+
 int main(int argc, char **argv)
 {
     flags_t flags;
     parse_arguments(argc, argv, &flags);
+
+    if(flags.x11 && flags.directfb) {
+        if(!fork()) {
+            flags.x11 = 0;
+            flags.directfb = 1;
+            run_build(&flags);
+        }
+        else {
+            int status;
+            wait(&status);
+            flags.x11 = 1;
+            flags.directfb = 0;
+            run_build(&flags);
+        }
+        return 0; /* unreachable */
+    }
+
+    run_build(&flags);
+    return 0; /* unreacheble */
 }
