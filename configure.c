@@ -5,6 +5,24 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#define CHECK(opt) !strncmp(argv[i], (opt), sizeof((opt)) - 1)
+
+#define CHECK_ENABLE(opt) \
+        if (CHECK("--enable-"#opt)) { \
+            flags->opt = 1; \
+        }
+
+#define CHECK_DISABLE(opt) \
+        if (CHECK("--disable-"#opt)) { \
+            flags->opt = 1; \
+        }
+
+#define CHECK_STRING(name) \
+printf("%s\n", "--"#name"="); \
+        if (CHECK("--"#name"=")) { \
+            flags->name = argv[i] + sizeof("--"#name"=") - 1; \
+        }
+
 typedef struct {
     int x11:2;
     int directfb:2;
@@ -13,9 +31,15 @@ typedef struct {
     int xinerama:2;
     int introspection:2;
     int rebuilds:2;
+    int langinfo:2;
     int shm:2;
     int xkb:2;
     int xinput:2;
+    int xcursor:2;
+    int xfixes:2;
+    int xcomposite:2;
+    int xdamage:2;
+    int x11r6:2;
     char *prefix;
     char *bindir;
     char *mandir;
@@ -31,8 +55,6 @@ typedef struct {
     char *CUPS_CONFIG;
 } flags_t;
 
-#define CHECK(opt) !strncmp(argv[i], (opt), sizeof((opt)) - 1)
-
 static void parse_arguments (int argc, char **argv, flags_t *flags)
 {
     memset(flags, 0, sizeof(flags_t));
@@ -43,94 +65,51 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
             flags->shm = 1;
             flags->xkb = 1;
             flags->xinput = 1;
+            flags->xcursor = 1;
+            flags->xfixes = 1;
+            flags->xcomposite = 1;
+            flags->xdamage = 1;
+            flags->x11r6 = 1;
         }
+
+        CHECK_DISABLE(shm);
+        CHECK_DISABLE(xkb);
+        CHECK_DISABLE(xinput);
+        CHECK_DISABLE(xcursor);
+        CHECK_DISABLE(xfixes);
+        CHECK_DISABLE(xinput);
+        CHECK_DISABLE(xcursor);
+        CHECK_DISABLE(xfixes);
+        CHECK_DISABLE(xcomposite);
+        CHECK_DISABLE(xdamage);
+        CHECK_DISABLE(x11r6);
 
         if (CHECK("--with-gdktarget=directfb")) {
             flags->directfb = 1;
         }
 
-        if (CHECK("--enable-print")) {
-            flags->print = 1;
-        }
+        CHECK_ENABLE(print);
+        CHECK_ENABLE(cups);
+        CHECK_ENABLE(xinerama);
+        CHECK_ENABLE(rebuilds);
+        CHECK_ENABLE(introspection);
+        CHECK_ENABLE(langinfo);
 
-        if (CHECK("--enable-cups")) {
-            flags->cups = 1;
-        }
-
-        if (CHECK("--enable-xinerama")) {
-            flags->xinerama = 1;
-        }
-
-        if (CHECK("--enable-rebuilds")) {
-            flags->rebuilds = 1;
-        }
-
-        if (CHECK("--disable-shm")) {
-            flags->shm = 0;
-        }
-
-        if (CHECK("--disable-xkb")) {
-            flags->xkb = 0;
-        }
-
-        if (CHECK("--disable-xinput")) {
-            flags->xinput = 0;
-        }
-
-        if (CHECK("--enable-introspection")) {
-            flags->print = 1;
-        }
-
-        if (CHECK("--prefix=")) {
-            flags->prefix = argv[i] + sizeof("--prefix=") - 1;
-        }
-
-        if (CHECK("--bindir=")) {
-            flags->bindir = argv[i] + sizeof("--bindir=") - 1;
-        }
-
-        if (CHECK("--mandir=")) {
-            flags->mandir = argv[i] + sizeof("--mandir=") - 1;
-        }
-
-        if (CHECK("--infodir=")) {
-            flags->infodir = argv[i] + sizeof("--infodir=") - 1;
-        }
-
-        if (CHECK("--datadir=")) {
-            flags->datadir = argv[i] + sizeof("--datadir=") - 1;
-        }
-
-        if (CHECK("--sysconfdir=")) {
-            flags->sysconfdir = argv[i] + sizeof("--sysconfdir=") - 1;
-        }
-
-        if (CHECK("--localstatedir=")) {
-            flags->localstatedir = argv[i] + sizeof("--localstatedir=") - 1;
-        }
-
-        if (CHECK("--datarootdir=")) {
-            flags->datarootdir = argv[i] + sizeof("--datarootdir=") - 1;
-        }
-
-        if (CHECK("--docdir=")) {
-            flags->docdir = argv[i] + sizeof("--docdir=") - 1;
-        }
-
-        if (CHECK("--htmldir=")) {
-            flags->htmldir = argv[i] + sizeof("--htmldir=") - 1;
-        }
+        CHECK_STRING(prefix);
+        CHECK_STRING(bindir);
+        CHECK_STRING(mandir);
+        CHECK_STRING(infodir);
+        CHECK_STRING(datadir);
+        CHECK_STRING(sysconfdir);
+        CHECK_STRING(localstatedir);
+        CHECK_STRING(datarootdir);
+        CHECK_STRING(docdir);
+        CHECK_STRING(htmldir);
+        CHECK_STRING(libdir);
+        CHECK_STRING(CUPS_CONFIG);
 
         if (CHECK("--with-sysroot=")) {
             flags->sysroot = argv[i] + sizeof("--with-sysroot=") - 1;
-        }
-
-        if (CHECK("--libdir=")) {
-            flags->libdir = argv[i] + sizeof("--libdir=") - 1;
-        }
-
-        if (CHECK("CUPS_CONFIG=")) {
-            flags->CUPS_CONFIG = argv[i] + sizeof("--CUPS_CONFIG=") - 1;
         }
     }
 }
@@ -143,9 +122,14 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
         it++; \
     }
 
+#define APPEND_OPTION_TO_ENVP(name, NAME) \
+    if (flags->name) { \
+        envp[++it] = NAME; \
+    }
+
 static void run_build(flags_t *flags)
 {
-    char *envp[23];
+    char *envp[29];
     memset(envp, 0 ,sizeof(envp));
     int it = 0;
     if (flags->x11) {
@@ -157,37 +141,21 @@ static void run_build(flags_t *flags)
 
     it++;
 
-    if (flags->print) {
-        envp[++it] = "PRINT_SUPPORT=1";
-    }
-
-    if (flags->cups) {
-        envp[++it] = "CUPS_SUPPORT=1";
-    }
-
-    if (flags->xinerama) {
-        envp[++it] = "XINERAMA_SUPPORT=1";
-    }
-
-    if (flags->introspection) {
-        envp[++it] = "INTROSPECTION_SUPPORT=1";
-    }
-
-    if (flags->rebuilds) {
-        envp[++it] = "REBUILDS=1";
-    }
-
-    if (flags->shm) {
-        envp[++it] = "SHM_SUPPORT=1";
-    }
-
-    if (flags->xkb) {
-        envp[++it] = "XKB_SUPPORT=1";
-    }
-
-    if (flags->xinput) {
-        envp[++it] = "XINPUT_SUPPORT=1";
-    }
+    APPEND_OPTION_TO_ENVP(print, "PRINT_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(cups, "CUPS_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xinerama, "XINERAMA_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(introspection, "INTROSPECTION_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(print, "PRINT_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(rebuilds, "REBUILDS=1");
+    APPEND_OPTION_TO_ENVP(langinfo, "LANGINFO=1");
+    APPEND_OPTION_TO_ENVP(shm, "SHM_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xkb, "XKB_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xinput, "XINPUT_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xcursor, "XCURSOR_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xfixes, "XFIXES_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xcomposite, "XCOMPOSITE_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xdamage, "XDAMAGE_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(x11r6, "X11R6_SUPPORT=1");
 
     APPEND_TO_ENVP(prefix, "PREFIX=");
     APPEND_TO_ENVP(bindir, "BINDIR=");

@@ -49,9 +49,6 @@ endif
 
 all:
 
-#	cd gtk && make
-#	cd gdk && make
-
 configure: configure.c
 	${CC} ${CFLAGS} configure.c -o configure
 
