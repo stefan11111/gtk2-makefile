@@ -28,8 +28,6 @@ typedef struct {
     int print:2;
     int cups:2;
     int xinerama:2;
-    int introspection:2;
-    int rebuilds:2;
     int langinfo:2;
     int http_authstring:2;
     int papi:2;
@@ -98,8 +96,6 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
         CHECK_ENABLE(print);
         CHECK_ENABLE(cups);
         CHECK_ENABLE(xinerama);
-        CHECK_ENABLE(rebuilds);
-        CHECK_ENABLE(introspection);
         CHECK_ENABLE(langinfo);
         CHECK_ENABLE(http_authstring);
         CHECK_ENABLE(papi);
@@ -153,10 +149,7 @@ static void run_build(flags_t *flags)
     APPEND_OPTION_TO_ENVP(print, "PRINT_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(cups, "CUPS_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(xinerama, "XINERAMA_SUPPORT=1");
-    APPEND_OPTION_TO_ENVP(introspection, "INTROSPECTION_SUPPORT=1");
-    APPEND_OPTION_TO_ENVP(print, "PRINT_SUPPORT=1");
-    APPEND_OPTION_TO_ENVP(rebuilds, "REBUILDS=1");
-    APPEND_OPTION_TO_ENVP(langinfo, "LANGINFO=1");
+    APPEND_OPTION_TO_ENVP(langinfo, "LANGINFO_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(http_authstring, "HTTP_AUTHSTRING_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(papi, "PAPI_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(shm, "SHM_SUPPORT=1");
