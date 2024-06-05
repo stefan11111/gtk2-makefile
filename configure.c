@@ -18,7 +18,6 @@
         }
 
 #define CHECK_STRING(name) \
-printf("%s\n", "--"#name"="); \
         if (CHECK("--"#name"=")) { \
             flags->name = argv[i] + sizeof("--"#name"=") - 1; \
         }
@@ -32,6 +31,8 @@ typedef struct {
     int introspection:2;
     int rebuilds:2;
     int langinfo:2;
+    int http_authstring:2;
+    int papi:2;
     int shm:2;
     int xkb:2;
     int xinput:2;
@@ -40,6 +41,8 @@ typedef struct {
     int xcomposite:2;
     int xdamage:2;
     int x11r6:2;
+    int xsync:2;
+    int xrandr:2;
     char *prefix;
     char *bindir;
     char *mandir;
@@ -70,6 +73,8 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
             flags->xcomposite = 1;
             flags->xdamage = 1;
             flags->x11r6 = 1;
+            flags->xsync = 1;
+            flags->xrandr = 1;
         }
 
         CHECK_DISABLE(shm);
@@ -83,6 +88,8 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
         CHECK_DISABLE(xcomposite);
         CHECK_DISABLE(xdamage);
         CHECK_DISABLE(x11r6);
+        CHECK_DISABLE(xsync);
+        CHECK_DISABLE(xrandr);
 
         if (CHECK("--with-gdktarget=directfb")) {
             flags->directfb = 1;
@@ -94,6 +101,8 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
         CHECK_ENABLE(rebuilds);
         CHECK_ENABLE(introspection);
         CHECK_ENABLE(langinfo);
+        CHECK_ENABLE(http_authstring);
+        CHECK_ENABLE(papi);
 
         CHECK_STRING(prefix);
         CHECK_STRING(bindir);
@@ -148,6 +157,8 @@ static void run_build(flags_t *flags)
     APPEND_OPTION_TO_ENVP(print, "PRINT_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(rebuilds, "REBUILDS=1");
     APPEND_OPTION_TO_ENVP(langinfo, "LANGINFO=1");
+    APPEND_OPTION_TO_ENVP(http_authstring, "HTTP_AUTHSTRING_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(papi, "PAPI_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(shm, "SHM_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(xkb, "XKB_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(xinput, "XINPUT_SUPPORT=1");
@@ -156,6 +167,8 @@ static void run_build(flags_t *flags)
     APPEND_OPTION_TO_ENVP(xcomposite, "XCOMPOSITE_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(xdamage, "XDAMAGE_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(x11r6, "X11R6_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xsync, "XSYNC_SUPPORT=1");
+    APPEND_OPTION_TO_ENVP(xrandr, "XRANDR_SUPPORT=1");
 
     APPEND_TO_ENVP(prefix, "PREFIX=");
     APPEND_TO_ENVP(bindir, "BINDIR=");
