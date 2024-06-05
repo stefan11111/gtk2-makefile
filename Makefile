@@ -6,6 +6,6 @@ configure: configure.c
 all: configure
 
 clean:
-	rm configure
+	rm -f configure
 
 .PHONY: all clean
