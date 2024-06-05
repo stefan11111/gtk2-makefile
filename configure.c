@@ -149,10 +149,10 @@ static void run_build(flags_t *flags)
     memset(envp, 0 ,sizeof(envp));
     int it = 0;
     if (flags->x11) {
-        envp[it] = "TARGET=x11";
+        envp[it] = "GDKTARGET=x11";
     }
     if (flags->directfb) {
-        envp[it] = "TARGET=directfb";
+        envp[it] = "GDKTARGET=directfb";
     }
 
     it++;
