@@ -12,6 +12,10 @@ typedef struct {
     int cups:2;
     int xinerama:2;
     int introspection:2;
+    int rebuilds:2;
+    int shm:2;
+    int xkb:2;
+    int xinput:2;
     char *prefix;
     char *bindir;
     char *mandir;
@@ -36,6 +40,9 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
     for(int i = 1; i < argc; i++) {
         if (CHECK("--with-gdktarget=x11")) {
             flags->x11 = 1;
+            flags->shm = 1;
+            flags->xkb = 1;
+            flags->xinput = 1;
         }
 
         if (CHECK("--with-gdktarget=directfb")) {
@@ -52,6 +59,22 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
 
         if (CHECK("--enable-xinerama")) {
             flags->xinerama = 1;
+        }
+
+        if (CHECK("--enable-rebuilds")) {
+            flags->rebuilds = 1;
+        }
+
+        if (CHECK("--disable-shm")) {
+            flags->shm = 0;
+        }
+
+        if (CHECK("--disable-xkb")) {
+            flags->xkb = 0;
+        }
+
+        if (CHECK("--disable-xinput")) {
+            flags->xinput = 0;
         }
 
         if (CHECK("--enable-introspection")) {
@@ -122,7 +145,7 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
 
 static void run_build(flags_t *flags)
 {
-    char *envp[19];
+    char *envp[23];
     memset(envp, 0 ,sizeof(envp));
     int it = 0;
     if (flags->x11) {
@@ -148,6 +171,22 @@ static void run_build(flags_t *flags)
 
     if (flags->introspection) {
         envp[++it] = "INTROSPECTION_SUPPORT=1";
+    }
+
+    if (flags->rebuilds) {
+        envp[++it] = "REBUILDS=1";
+    }
+
+    if (flags->shm) {
+        envp[++it] = "SHM_SUPPORT=1";
+    }
+
+    if (flags->xkb) {
+        envp[++it] = "XKB_SUPPORT=1";
+    }
+
+    if (flags->xinput) {
+        envp[++it] = "XINPUT_SUPPORT=1";
     }
 
     APPEND_TO_ENVP(prefix, "PREFIX=");
@@ -190,6 +229,10 @@ int main(int argc, char **argv)
 {
     flags_t flags;
     parse_arguments(argc, argv, &flags);
+
+    if(!flags.x11 && !flags.directfb) {
+        flags.x11 = 1;
+    }
 
     if(flags.x11 && flags.directfb) {
         if(!fork()) {
