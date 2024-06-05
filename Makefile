@@ -11,6 +11,8 @@ GTK_API_VERSION = 2.0
 GTK_BINARY_VERSION = 2.10.0
 
 all:
+	cd gtk && make
+	cd gdk && make
 
 configure: configure.c
 	${CC} ${CFLAGS} configure.c -o configure
