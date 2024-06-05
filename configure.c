@@ -13,6 +13,7 @@ typedef struct {
     int xinerama:2;
     int introspection:2;
     char *prefix;
+    char *bindir;
     char *mandir;
     char *infodir;
     char *datadir;
@@ -28,7 +29,7 @@ typedef struct {
 
 #define CHECK(opt) !strncmp(argv[i], (opt), sizeof((opt)) - 1)
 
-void parse_arguments (int argc, char **argv, flags_t *flags)
+static void parse_arguments (int argc, char **argv, flags_t *flags)
 {
     memset(flags, 0, sizeof(flags_t));
 
@@ -58,58 +59,131 @@ void parse_arguments (int argc, char **argv, flags_t *flags)
         }
 
         if (CHECK("--prefix=")) {
-            flags->prefix; argv[i] + sizeof("--prefix=") - 1;
+            flags->prefix = argv[i] + sizeof("--prefix=") - 1;
+        }
+
+        if (CHECK("--bindir=")) {
+            flags->bindir = argv[i] + sizeof("--bindir=") - 1;
         }
 
         if (CHECK("--mandir=")) {
-            flags->mandir; argv[i] + sizeof("--mandir=") - 1;
+            flags->mandir = argv[i] + sizeof("--mandir=") - 1;
         }
 
         if (CHECK("--infodir=")) {
-            flags->infodir; argv[i] + sizeof("--infodir=") - 1;
+            flags->infodir = argv[i] + sizeof("--infodir=") - 1;
         }
 
         if (CHECK("--datadir=")) {
-            flags->datadir; argv[i] + sizeof("--datadir=") - 1;
+            flags->datadir = argv[i] + sizeof("--datadir=") - 1;
         }
 
         if (CHECK("--sysconfdir=")) {
-            flags->sysconfdir; argv[i] + sizeof("--sysconfdir=") - 1;
+            flags->sysconfdir = argv[i] + sizeof("--sysconfdir=") - 1;
         }
 
         if (CHECK("--localstatedir=")) {
-            flags->localstatedir; argv[i] + sizeof("--localstatedir=") - 1;
+            flags->localstatedir = argv[i] + sizeof("--localstatedir=") - 1;
         }
 
         if (CHECK("--datarootdir=")) {
-            flags->datarootdir; argv[i] + sizeof("--datarootdir=") - 1;
+            flags->datarootdir = argv[i] + sizeof("--datarootdir=") - 1;
         }
 
         if (CHECK("--docdir=")) {
-            flags->docdir; argv[i] + sizeof("--docdir=") - 1;
+            flags->docdir = argv[i] + sizeof("--docdir=") - 1;
         }
 
         if (CHECK("--htmldir=")) {
-            flags->htmldir; argv[i] + sizeof("--htmldir=") - 1;
+            flags->htmldir = argv[i] + sizeof("--htmldir=") - 1;
         }
 
         if (CHECK("--with-sysroot=")) {
-            flags->sysroot; argv[i] + sizeof("--with-sysroot=") - 1;
+            flags->sysroot = argv[i] + sizeof("--with-sysroot=") - 1;
         }
 
         if (CHECK("--libdir=")) {
-            flags->libdir; argv[i] + sizeof("--libdir=") - 1;
+            flags->libdir = argv[i] + sizeof("--libdir=") - 1;
         }
 
         if (CHECK("CUPS_CONFIG=")) {
-            flags->CUPS_CONFIG; argv[i] + sizeof("--CUPS_CONFIG=") - 1;
+            flags->CUPS_CONFIG = argv[i] + sizeof("--CUPS_CONFIG=") - 1;
         }
     }
 }
 
-void run_build(flags_t *flags)
+#define APPEND_TO_ENVP(name, NAME) \
+    if (flags->name) { \
+        envp[it] = (char*)malloc(strlen(flags->name) + sizeof(NAME)); \
+        strcpy(envp[it], NAME); \
+        strcpy(envp[it] + sizeof(NAME) - 1, flags->name); \
+        it++; \
+    }
+
+static void run_build(flags_t *flags)
 {
-    exit(0);
+    char *envp[19];
+    memset(envp, 0 ,sizeof(envp));
+    int it = 0;
+    if (flags->x11) {
+        envp[it] = "TARGET=x11";
+    }
+    if (flags->directfb) {
+        envp[it] = "TARGET=directfb";
+    }
+
+    it++;
+
+    if (flags->print) {
+        envp[++it] = "PRINT_SUPPORT=1";
+    }
+
+    if (flags->cups) {
+        envp[++it] = "CUPS_SUPPORT=1";
+    }
+
+    if (flags->xinerama) {
+        envp[++it] = "XINERAMA_SUPPORT=1";
+    }
+
+    if (flags->introspection) {
+        envp[++it] = "INTROSPECTION_SUPPORT=1";
+    }
+
+    APPEND_TO_ENVP(prefix, "PREFIX=");
+    APPEND_TO_ENVP(bindir, "BINDIR=");
+    APPEND_TO_ENVP(mandir, "MANDIR=");
+    APPEND_TO_ENVP(infodir, "INFODIR");
+    APPEND_TO_ENVP(datadir, "DATADIR=");
+    APPEND_TO_ENVP(localstatedir, "LOCALSTATEDIR=");
+    APPEND_TO_ENVP(datarootdir, "DATAROOTDIR=");
+    APPEND_TO_ENVP(docdir, "DOCDIR=");
+    APPEND_TO_ENVP(htmldir, "HTMLDIR=");
+    APPEND_TO_ENVP(sysroot, "SYSROOT=");
+    APPEND_TO_ENVP(libdir, "LIBDIR=");
+    APPEND_TO_ENVP(CUPS_CONFIG, "CUPS_CONFIG=");
+    envp[it] = NULL;
+
+    if (!flags->prefix && !flags->bindir) {
+        execve("/usr/bin/make", NULL, envp);
+        return; /* unreacheble */
+    }
+
+    if (flags->bindir) {
+        char *makedir = (char*)malloc(strlen(flags->bindir) + sizeof("/make"));
+
+        strcpy(makedir, flags->bindir);
+        strcpy(makedir + strlen(flags->bindir), "/make");
+
+        execve(makedir, NULL, envp);
+        return; /* unreachable */
+    }
+    char *makedir = (char*)malloc(strlen(flags->prefix) + sizeof("/bin/make"));
+
+    strcpy(makedir, flags->prefix);
+    strcpy(makedir + strlen(flags->prefix), "/bin/make");
+
+    execve(makedir, NULL, envp);
 }
 
 int main(int argc, char **argv)
