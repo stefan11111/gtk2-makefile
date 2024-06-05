@@ -103,6 +103,7 @@ endif
 
 ifeq ($(X11R6_SUPPORT), 1)
 	XCFLAGS += -DHAVE_X11R6 -DHAVE_XCONVERTCASE -DHAVE_XINTERNATOMS
+endif
 
 ifeq ($(XSYNC_SUPPORT), 1)
 	XCFLAGS += -DHAVE_XSYNC
@@ -111,6 +112,9 @@ endif
 ifeq ($(XRANDR_SUPPORT), 1)
 	XCFLAGS += -DHAVE_RANDR -DHAVE_RANDR15
 endif
+
+XCFLAGS += -lXrender -lXrandr -lXcursor -lXext -lgmodule-2.0 -lpangocairo-1.0 -lX11 -lXcomposite -lXdamage -lXfixes -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lharfbuzz -lfontconfig -lfreetype -lm
+
 all:
 
 configure: configure.c
