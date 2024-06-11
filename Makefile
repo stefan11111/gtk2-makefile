@@ -13,21 +13,35 @@ GTK_BINARY_VERSION = 2.10.0
 GDKTARGET = x11
 
 ## Copy .pc files to target-specific names
-#gtk+-$(GDKTARGET)-2.0.pc: gtk+-2.0.pc
-#	rm -f gtk+-$(GDKTARGET)-2.0.pc && \
-#	cp gtk+-2.0.pc gtk+-$(GDKTARGET)-2.0.pc
+gtk+-2.0.pc: gtk+-2.0.pc.in
+	sed -i 's/@prefix@/${PREFIX}/g' gtk+-2.0.pc.in
+	sed -i 's/@exec_prefix@/${PREFIX}/g' gtk+-2.0.pc.in
+	sed -i 's/@libdir@/${LIBDIR}/g' gtk+-2.0.pc.in
+	sed -i 's/@includedir@/${PREFIX}/include/g' gtk+-2.0.pc.in
+	sed -i 's/@gtktarget@/${GDKTARGET}/g' gtk+-2.0.pc.in
+	sed -i 's/@GTK_BINARY_VERSION@/${GTK_BINARY_VERSION}/g' gtk+-2.0.pc.in
+	sed -i 's/@host@/${HOST}/g' gtk+-2.0.pc.in
+	sed -i 's/@version@/${GTK_VERSION}/g' gtk+-2.0.pc.in
+	sed -i 's/@GTK_PACKAGES@/cairo gdk-pixbuf-2.0 gio-2.0 pangoft2/g' gtk+-2.0.pc.in
+	sed -i 's/@GTK_API_VERSION@/${GTK_API_VERSION}/g' gtk+-2.0.pc.in
+	sed -i 's/@GTK_EXTRA_LIBS@//g' gtk+-2.0.pc.in
+	sed -i 's/@GTK_EXTRA_CFLAGS@//g' gtk+-2.0.pc.in
 
-#gdk-$(GDKTARGET)-2.0.pc: gdk-2.0.pc
-#	rm -f gdk-$(GDKTARGET)-2.0.pc && \
-#	cp gdk-2.0.pc gdk-$(GDKTARGET)-2.0.pc
+gtk+-$(GDKTARGET)-2.0.pc: gtk+-2.0.pc
+	rm -f gtk+-$(GDKTARGET)-2.0.pc && \
+	cp gtk+-2.0.pc gtk+-$(GDKTARGET)-2.0.pc
 
-#gtk+-$(GDKTARGET)-2.0-uninstalled.pc: gtk+-2.0-uninstalled.pc
-#	rm -f gtk+-$(GDKTARGET)-2.0-uninstalled.pc && \
-#	cp gtk+-2.0-uninstalled.pc gtk+-$(GDKTARGET)-2.0-uninstalled.pc
+gdk-$(GDKTARGET)-2.0.pc: gdk-2.0.pc
+	rm -f gdk-$(GDKTARGET)-2.0.pc && \
+	cp gdk-2.0.pc gdk-$(GDKTARGET)-2.0.pc
 
-#gdk-$(GDKTARGET)-2.0-uninstalled.pc: gdk-2.0-uninstalled.pc
-#	rm -f gdk-$(GDKTARGET)-2.0-uninstalled.pc && \
-#	cp gdk-2.0-uninstalled.pc gdk-$(GDKTARGET)-2.0-uninstalled.pc
+gtk+-$(GDKTARGET)-2.0-uninstalled.pc: gtk+-2.0-uninstalled.pc
+	rm -f gtk+-$(GDKTARGET)-2.0-uninstalled.pc && \
+	cp gtk+-2.0-uninstalled.pc gtk+-$(GDKTARGET)-2.0-uninstalled.pc
+
+gdk-$(GDKTARGET)-2.0-uninstalled.pc: gdk-2.0-uninstalled.pc
+	rm -f gdk-$(GDKTARGET)-2.0-uninstalled.pc && \
+	cp gdk-2.0-uninstalled.pc gdk-$(GDKTARGET)-2.0-uninstalled.pc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA= gdk-$(GDKTARGET)-2.0.pc gtk+-$(GDKTARGET)-2.0.pc pkgconfig_DATA += gtk+-unix-print-2.0.pc
@@ -128,6 +142,8 @@ includedir=${PREFIX}${INCLUDEDIR}
 top_srcdir=.
 
 all:
+	cd gtk && make
+	cd gdk && make
 
 configure: configure.c
 	${CC} ${CFLAGS} configure.c -o configure
