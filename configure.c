@@ -42,6 +42,7 @@ typedef struct {
     int x11r6:2;
     int xsync:2;
     int xrandr:2;
+    char *host;
     char *prefix;
     char *bindir;
     char *mandir;
@@ -102,6 +103,7 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
         CHECK_ENABLE(http_authstring);
         CHECK_ENABLE(papi);
 
+        CHECK_STRING(host);
         CHECK_STRING(prefix);
         CHECK_STRING(bindir);
         CHECK_STRING(mandir);
@@ -136,7 +138,7 @@ static void parse_arguments (int argc, char **argv, flags_t *flags)
 
 static void run_build(flags_t *flags)
 {
-    char *envp[29];
+    char *envp[31];
     memset(envp, 0 ,sizeof(envp));
     int it = 0;
     if (flags->x11) {
@@ -166,6 +168,7 @@ static void run_build(flags_t *flags)
     APPEND_OPTION_TO_ENVP(xsync, "XSYNC_SUPPORT=1");
     APPEND_OPTION_TO_ENVP(xrandr, "XRANDR_SUPPORT=1");
 
+    APPEND_TO_ENVP(host, "HOST=");
     APPEND_TO_ENVP(prefix, "PREFIX=");
     APPEND_TO_ENVP(bindir, "BINDIR=");
     APPEND_TO_ENVP(mandir, "MANDIR=");
