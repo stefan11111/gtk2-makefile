@@ -59,6 +59,10 @@ ifeq ($(XINERAMA_SUPPORT), 1)
 	XCFLAGS += -DHAVE_XINERAMA
 endif
 
+ifeq ($(INTROSPECTION_SUPPORT), 1)
+	XCFLAGS += -DHAVE_INTROSPECTION
+endif
+
 ifeq ($(LANGINFO_SUPPORT), 1)
 	XCFLAGS += -DHAVE__NL_TIME_FIRST_WEEKDAY -DHAVE__NL_MEASUREMENT_MEASUREMENT -DHAVE__NL_PAPER_HEIGHT -DHAVE__NL_PAPER_WIDTH
 endif
@@ -114,6 +118,14 @@ ifeq ($(XRANDR_SUPPORT), 1)
 endif
 
 XCFLAGS += -lXrender -lXrandr -lXcursor -lXext -lgmodule-2.0 -lpangocairo-1.0 -lX11 -lXcomposite -lXdamage -lXfixes -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lharfbuzz -lfontconfig -lfreetype -lm
+
+gtktargetlib=libgtk-$(GDKTARGET)-$(GTK_API_VERSION).la
+
+INCLUDEDIR=/usr/include
+
+includedir=${PREFIX}${INCLUDEDIR}
+
+top_srcdir=.
 
 all:
 
